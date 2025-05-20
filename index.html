@@ -1,118 +1,199 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | DRAGON_AR_DEMO</title>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Dragon Demo</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+        }
+        video {
+            border: 3px solid #61dafb;
+            border-radius: 8px;
+            width: 100%;
+            height: auto;
+        }
+        #unity-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none; /* Ẩn đến khi phát hiện ảnh */
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        button {
+            background-color: #61dafb;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 300px;
+        }
+        button:hover {
+            background-color: #21a1f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>AR Dragon Demo</h1>
+    <div class="video-container">
+        <video id="video" autoplay playsinline></video>
+        <div id="unity-container">
+            <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
         </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">DRAGON_AR_DEMO</div>
-      </div>
     </div>
+    <div class="button-container">
+        <button id="start">Bắt đầu Quay Video</button>
+        <button id="stop" style="display:none;">Dừng Quay Video</button>
+        <button id="snap">Chụp Ảnh</button>
+    </div>
+
     <script>
-      var canvas = document.querySelector("#unity-canvas");
+        const video = document.getElementById('video');
+        const startButton = document.getElementById('start');
+        const stopButton = document.getElementById('stop');
+        const unityContainer = document.getElementById('unity-container');
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        let mediaRecorder;
+        let chunks = [];
+        let currentStream;
+        let facingMode = "environment"; // Mặc định là camera sau
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: { exact: facingMode } } 
+                });
+                currentStream = stream;
+                video.srcObject = stream;
+            } catch (error) {
+                console.error("Lỗi truy cập camera: ", error);
+                alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
+            }
         }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/DemoDragonhehe.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/DemoDragonhehe.data",
-        frameworkUrl: buildUrl + "/DemoDragonhehe.framework.js",
-        codeUrl: buildUrl + "/DemoDragonhehe.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "DRAGON_AR_DEMO",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
+        startCamera();
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
-
-      document.querySelector("#unity-loading-bar").style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-
-              }).catch((message) => {
-                alert(message);
-              });
+        startButton.onclick = () => {
+            chunks = [];
+            mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/mp4' });
+            mediaRecorder.ondataavailable = (event) => {
+                chunks.push(event.data);
             };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/mp4' });
+                saveFile(blob, `Video${generateRandomNumber()}.mp4`);
+            };
+            mediaRecorder.start();
+            startButton.style.display = 'none';
+            stopButton.style.display = 'block';
+        };
 
-      document.body.appendChild(script);
+        stopButton.onclick = () => {
+            mediaRecorder.stop();
+            startButton.style.display = 'block';
+            stopButton.style.display = 'none';
+        };
 
+        document.getElementById('snap').onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            saveFile(dataURLtoBlob(dataUrl), `Photo${generateRandomNumber()}.png`);
+            detectImage(dataUrl); // Kiểm tra ảnh
+        };
+
+        function detectImage(dataUrl) {
+            // Kiểm tra xem ảnh có khớp với XR Reference Image không
+            // Nếu khớp, hiển thị Unity
+            unityContainer.style.display = 'block'; // Hiển thị Unity
+        }
+
+        function generateRandomNumber() {
+            return Math.floor(Math.random() * 10000);
+        }
+
+        function dataURLtoBlob(dataURL) {
+            const byteString = atob(dataURL.split(',')[1]);
+            const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        }
+
+        function saveFile(blob, filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        // Khởi tạo Unity
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/DemoDragonhehe.loader.js";
+        var config = {
+            arguments: [],
+            dataUrl: buildUrl + "/DemoDragonhehe.data",
+            frameworkUrl: buildUrl + "/DemoDragonhehe.framework.js",
+            codeUrl: buildUrl + "/DemoDragonhehe.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "DRAGON_AR_DEMO",
+            productVersion: "0.1",
+            showBanner: unityShowBanner,
+        };
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(document.querySelector("#unity-canvas"), config)
+                .then((unityInstance) => {
+                    document.querySelector("#unity-loading-bar").style.display = "none";
+                    document.querySelector("#unity-fullscreen-button").onclick = () => {
+                        unityInstance.SetFullscreen(1);
+                    };
+                }).catch((message) => {
+                    alert(message);
+                });
+        };
+
+        document.body.appendChild(script);
     </script>
-  </body>
+</body>
 </html>
