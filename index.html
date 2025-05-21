@@ -1,7 +1,6 @@
 <!-- Zappar WebGL template for Unity 2020 and above versions -->
 <!-- NFYNT -->
 <!DOCTYPE html>
-<<<<<<< HEAD
 <html lang="en-us">
 
 <head>
@@ -48,47 +47,11 @@
         }
 
         #loading-cover {
-=======
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Dragon Demo</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: black;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-        }
-        video {
-            border: 3px solid #61dafb;
-            border-radius: 8px;
-            width: 100%;
-            height: auto;
-        }
-        #unity-container {
->>>>>>> 8dc9742676f98917e553bce747c09729e43ff6d0
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-<<<<<<< HEAD
             display: flex;
             justify-content: center;
             align-items: center;
@@ -243,169 +206,8 @@
                 alert(message);
             });
         }
-=======
-            display: none; /* Ẩn đến khi phát hiện ảnh */
-        }
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        button {
-            background-color: #61dafb;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            width: 100%;
-            max-width: 300px;
-        }
-        button:hover {
-            background-color: #21a1f1;
-        }
-    </style>
-</head>
-<body>
-    <h1>AR Dragon Demo</h1>
-    <div class="video-container">
-        <video id="video" autoplay playsinline></video>
-        <div id="unity-container">
-            <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-        </div>
-    </div>
-    <div class="button-container">
-        <button id="start">Bắt đầu Quay Video</button>
-        <button id="stop" style="display:none;">Dừng Quay Video</button>
-        <button id="snap">Chụp Ảnh</button>
-    </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const startButton = document.getElementById('start');
-        const stopButton = document.getElementById('stop');
-        const unityContainer = document.getElementById('unity-container');
-
-        let mediaRecorder;
-        let chunks = [];
-        let currentStream;
-        let facingMode = "environment"; // Mặc định là camera sau
-
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: { exact: facingMode } } 
-                });
-                currentStream = stream;
-                video.srcObject = stream;
-            } catch (error) {
-                console.error("Lỗi truy cập camera: ", error);
-                alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
-            }
-        }
-
-        startCamera();
-
-        startButton.onclick = () => {
-            chunks = [];
-            mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/mp4' });
-            mediaRecorder.ondataavailable = (event) => {
-                chunks.push(event.data);
-            };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/mp4' });
-                saveFile(blob, `Video${generateRandomNumber()}.mp4`);
-            };
-            mediaRecorder.start();
-            startButton.style.display = 'none';
-            stopButton.style.display = 'block';
-        };
-
-        stopButton.onclick = () => {
-            mediaRecorder.stop();
-            startButton.style.display = 'block';
-            stopButton.style.display = 'none';
-        };
->>>>>>> 8dc9742676f98917e553bce747c09729e43ff6d0
-
-        document.getElementById('snap').onclick = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/png');
-
-            saveFile(dataURLtoBlob(dataUrl), `Photo${generateRandomNumber()}.png`);
-            detectImage(dataUrl); // Kiểm tra ảnh
-        };
-
-        function detectImage(dataUrl) {
-            // Kiểm tra xem ảnh có khớp với XR Reference Image không
-            // Nếu khớp, hiển thị Unity
-            unityContainer.style.display = 'block'; // Hiển thị Unity
-        }
-
-        function generateRandomNumber() {
-            return Math.floor(Math.random() * 10000);
-        }
-
-        function dataURLtoBlob(dataURL) {
-            const byteString = atob(dataURL.split(',')[1]);
-            const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            return new Blob([ab], { type: mimeString });
-        }
-
-        function saveFile(blob, filename) {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-        }
-
-        // Khởi tạo Unity
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/DemoDragonhehe.loader.js";
-        var config = {
-            arguments: [],
-            dataUrl: buildUrl + "/DemoDragonhehe.data",
-            frameworkUrl: buildUrl + "/DemoDragonhehe.framework.js",
-            codeUrl: buildUrl + "/DemoDragonhehe.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "DRAGON_AR_DEMO",
-            productVersion: "0.1",
-            showBanner: unityShowBanner,
-        };
-
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-            createUnityInstance(document.querySelector("#unity-canvas"), config)
-                .then((unityInstance) => {
-                    document.querySelector("#unity-loading-bar").style.display = "none";
-                    document.querySelector("#unity-fullscreen-button").onclick = () => {
-                        unityInstance.SetFullscreen(1);
-                    };
-                }).catch((message) => {
-                    alert(message);
-                });
-        };
-
-        document.body.appendChild(script);
     </script>
 </body>
-<<<<<<< HEAD
 
-=======
->>>>>>> 8dc9742676f98917e553bce747c09729e43ff6d0
 </html>
