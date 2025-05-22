@@ -1,5 +1,3 @@
-<!-- Zappar WebGL template for Unity 2020 and above versions -->
-<!-- NFYNT -->
 <!DOCTYPE html>
 <html lang="en-us">
 
@@ -23,7 +21,10 @@
         html,
         body {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         canvas {
@@ -42,7 +43,6 @@
         #unity-canvas {
             width: 100%;
             height: 100%;
-
             background: #231F20;
         }
 
@@ -78,6 +78,21 @@
             width: 0%;
             height: 100%;
             background: white;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        #controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
 
         .light #unity-progress-bar-empty {
@@ -132,9 +147,15 @@
             <div class="spinner"></div>
         </div>
     </div>
+    
+    <div id="controls">
+        <button id="capture-button">Chụp Ảnh</button>
+        <button id="record-button">Quay Phim</button>
+    </div>
+
     <script type="text/javascript" src="https://libs.zappar.com/zappar-cv/2.1.3/zappar-cv.js"></script>
     <script>
-        var db = indexedDB.open("dummy_indexdb", 1); // iOS 14.6 fix; the call to open indexdb hangs forever otherwise
+        var db = indexedDB.open("dummy_indexdb", 1);
 
         const buildUrl = "Build";
         const loaderUrl = buildUrl + "/DemoDragonhehe.loader.js";
@@ -146,19 +167,14 @@
             companyName: "DefaultCompany",
             productName: "DRAGON_AR_DEMO",
             productVersion: "0.1",
-        //Useful when used along with Filename as Hashes option
             cacheControl: function (url) {
-            // typically includes: .data, .bundle, .zpt
-            if (url.match(/\.data/) || url.match(/\.bundle/) || url.match(/\.zpt/)) {
-             return "immutable";
-}
-   
-            if (url.match(/\.mp4/) || url.match(/\.custom/) || url.match(/\.zbin/)) {
-                return "immutable";
-            }   
-            // Disable explicit caching for all other files.
-            // Note: the default browser cache may cache them anyway.
-            return "no-store";
+                if (url.match(/\.data/) || url.match(/\.bundle/) || url.match(/\.zpt/)) {
+                    return "immutable";
+                }
+                if (url.match(/\.mp4/) || url.match(/\.custom/) || url.match(/\.zbin/)) {
+                    return "immutable";
+                }
+                return "no-store";
             },
         };
 
@@ -169,10 +185,11 @@
         const progressBarFull = document.querySelector("#unity-progress-bar-full");
         const spinner = document.querySelector('.spinner');
 
+        const captureButton = document.getElementById('capture-button');
+        const recordButton = document.getElementById('record-button');
+
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             container.className = "unity-mobile";
-            //config.matchWebGLToCanvasSize = false;    
-            //set devicePixelRatio=1; to avoid draining fillrate performance on mobile and override low DPI mode
             config.devicePixelRatio = window.devicePixelRatio;
         }
         loadingCover.style.display = "";
@@ -181,7 +198,6 @@
 
         const script = document.createElement("script");
         script.src = loaderUrl;
-        //script.onload = () => { CreateUnityLoader();   };
         document.body.appendChild(script);
 
         window.zappar.permission_request_ui_promise().then(WaitForZCVLoad);
@@ -207,6 +223,26 @@
             });
         }
 
+        captureButton.addEventListener('click', () => {
+            window.zappar.takePhoto().then((photo) => {
+                console.log('Ảnh chụp:', photo);
+            });
+        });
+
+        let isRecording = false;
+        recordButton.addEventListener('click', () => {
+            if (!isRecording) {
+                window.zappar.startRecording();
+                isRecording = true;
+                recordButton.textContent = 'Dừng Quay';
+            } else {
+                window.zappar.stopRecording().then((video) => {
+                    console.log('Video quay:', video);
+                });
+                isRecording = false;
+                recordButton.textContent = 'Quay Phim';
+            }
+        });
     </script>
 </body>
 
